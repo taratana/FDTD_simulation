@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include "const_FDTD.h"
-#include "GraphR.h"
+#include "Output.h"
 #include<string>
 #include<omp.h>
 #include<iomanip>
@@ -74,7 +74,8 @@ public:
 	void CalcCE(vector<double> &ae, vector<double> &be1, vector<double> &be2 ,double d1,double d2);
 	void CalcCM(vector<double> &am, vector<double> &bm1, vector<double> &bm2, double d1, double d2);
 	void CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, int nz1);
-	void Source(double t);
+	void SourceE(double t);
+	void SourceH(double t);
 	void CalcEField();
 	void CalcHField();
 	void CalcPMLEField(PML *pml);

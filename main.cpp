@@ -1,3 +1,8 @@
+/*
+FDTD法によるTemporary Intefering Stimulationのシミュレーション
+Made by Mato , 2019
+*/
+
 #include "FDTD.h"
 #include<fstream>
 #include <ctime>
@@ -49,5 +54,8 @@ int main(void) {
 	of_log << "<Cell Size>-(DX,DY,DZ)"<<endl<< "(" << DX << "," << DY << "," << DZ <<")"<< "\n\n";
 	of_log << "<Material Constants>" << endl << "water-(εr,μr,σe,σm,)" << "\n";
 	of_log << "(" << WATER_EPS << "," << WATER_MU << "," << WATER_SIGMA_E << "," << WATER_SIGMA_M << ")" << "\n\n";
+	of_log << "<Wave Frequency>-f [Hz]" << endl << WAVE_FREQUENCY << endl << endl;
+	of_log << "<E Ampltude,H Amplitude>-(E_amp,H_amp)" << endl << "(" << E_WAVE_AMPLITUDE << "," << H_WAVE_AMPLITUDE << ")" << endl << endl;
 	of_log << "<Time Elapased>" << endl << (int)elapsed / 3600 << "hours " << (int)elapsed % 3600 / 60.0 << "min" << "\n\n";
+
 }

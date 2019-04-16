@@ -61,16 +61,7 @@ void FDTD::InitMatrix() {
 void FDTD::Modeling() {
 	int i, j, k;
 
-	//真空中 ID=0
 	//IDEx,IDEy,IDEzは0で初期化しているので真空以外の領域をモデリングする
-
-	//水
-
-	cout << "Modeling Finished." << endl;
-}
-
-void FDTD::CalcCoefficient() {
-	int i, j, k;
 	cout << "Setting Materials." << endl;
 
 	//真空中-0
@@ -85,6 +76,27 @@ void FDTD::CalcCoefficient() {
 	mu[1] = WATER_MU;
 	sgmM[1] = WATER_SIGMA_M;
 
+	
+	
+	//真空中 ID=0
+	   
+
+	//水		とりあえず120x20x60
+	//for (int i = 0 + L_PML; i <= NXX + L_PML; i++) {
+	//	for (int j = 80 + L_PML; j <= 100 + L_PML; j++) {
+	//		for (int k = 30 + L_PML; k <= 90 + L_PML; k++) {
+	//			IDE[i][j][k] = 1;
+	//		}
+	//	}
+	//}
+
+
+	cout << "Modeling Finished." << endl;
+}
+
+void FDTD::CalcCoefficient() {
+	int i, j, k;
+	
 	CalcCE(aex, bexy, bexz, DY, DZ);
 	CalcCE(aey, beyz, beyx, DZ, DX);
 	CalcCE(aez, bezx, bezy, DX, DY);
@@ -161,6 +173,7 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 	double sgmym, sgmye;
 	double sgmzm, sgmze;
 
+#pragma omp parallel for
 	for (k = 0; k <= nz1 - nz0 - 1; k++) {
 		for (j = 0; j < ny1 - ny0 - 1; j++) {
 			for (i = 0; i <= nx1 - nx0 - 1; i++) {
@@ -250,19 +263,23 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 	}
 }
 
-void FDTD::Source(double t) {
-	int i, j, k;
+void FDTD::SourceE(double t) {
+	int j = NY/2;
+	for (int i = 0; i <= NX; i++) {
+		for (int k = 0; k <= NZ; k++) {
+			Ez[i][j][k] = E_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t);
+			//Ey[i][j][k] = E_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t)*sin(PI / 6);
+			//Ez[i][j][k] = E_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t)*cos(PI / 6);
+		}
+	}
+}
 
-	double wave_inpedance = sqrt(MU0 / EPSILON0);
-	double f = 2000;
-	double E_amp = 1;
-	double H_amp = E_amp / wave_inpedance;
-
-	j = 0;
-	for (i = 0; i <= NX; i++) {
-		for (k = 0; k < NZ; k++) {
-			Ez[i][j][k] = E_amp*sin(2 * PI*f*t);
-			Hx[i][j][k] = H_amp * sin(2 * PI*f*t);
+void FDTD::SourceH(double t) {
+	int j = NY / 2;
+	for (int i = 0; i <= NX; i++) {
+		for (int k = 0; k <= NZ; k++) {
+			Hx[i][j][k] = H_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t);
+			//Hx[i][j][k] = H_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t)*sin(PI/6);
 		}
 	}
 }
@@ -444,10 +461,11 @@ void FDTD::CalcPMLHField(PML *pml) {
 }
 
 void FDTD::StartRepetition() {
-	int i, j,k, n;
+	int i, j, k, n;
 	double t = DT;
 	char file_name[20];
-	GraphR* EOutput;
+	Output* EOutput1;
+	Output *EOutput2;
 	cout << "Repetition Start." << endl;
 
 	for (n = 0; n <= NT; n++) {
@@ -455,30 +473,37 @@ void FDTD::StartRepetition() {
 		for (i = 0; i < 6; i++) {
 			//CalcPMLEField(&pml[i]);
 		}
-		Source(t);
+		SourceE(t);
 		t = t + DT / 2.0;
 		CalcHField();
 		for (i = 0; i < 6; i++) {
 			//CalcPMLHField(&pml[i]);
 		}
+		SourceH(t);
 		t = t + DT / 2.0;
 
 
 		cout << "n=" << setw(4) << setfill('0') << n;
 		cout << " (t=" << scientific << setprecision(2) << t << ")" << endl;
 
-		if (n % 12 == 0) {
-			sprintf(file_name, "E-%d(t=%5.3e).csv", n,t);
-			EOutput = new GraphR(file_name);
-			for (i = L_PML; i <= NX - L_PML ; i++) {
+		if (n % 50 == 0) {
+			sprintf(file_name, "E-n=%03d,t=%4.2e.csv", n, t);
+			//EOutput1 = new Output(file_name);
+			sprintf(file_name, "E-n=%03d,t=%4.2e.csv", n, t);
+			EOutput2 = new Output(file_name);
+
+			for (i = L_PML; i <= NX - L_PML; i++) {
 				for (j = L_PML; j <= NY - L_PML; j++) {
 					for (k = L_PML; k <= NZ - L_PML; k++) {
-						EOutput->Add(i - L_PML, j - L_PML, k - L_PML, Ez[i][j][k]);
-						//距離で出力 EOutput->Add((i - L_PML)*DX, (j - L_PML)*DY,(k-L_PML)*DZ, Ez[i][j][k]);	
+						//EOutput1->Add(i - L_PML, j - L_PML, k - L_PML, Ez[i][j][k]);
+						EOutput2->Add((i - L_PML)*DX*1e-6, (j - L_PML)*DY*1e-6, (k - L_PML)*DZ*1e-6, Ez[i][j][k]);
 					}
+					//EOutput1->Add();
+					//EOutput2->Add();
 				}
 			}
-			delete EOutput;
+			//delete EOutput1;
+			delete EOutput2;
 		}
 
 	}
