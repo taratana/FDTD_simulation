@@ -1,7 +1,7 @@
-#include "GraphR.h"
+#include "Output.h"
 
 
-GraphR::GraphR(string name){
+Output::Output(string name){
 	fp.open(name.c_str(),ios::out);
 	if(fp.fail()){
 		std::cout<<"file open error\n";
@@ -14,13 +14,13 @@ GraphR::GraphR(string name){
 
 
 
-void GraphR::Add(double x,double y,double z,double V){
+void Output::Add(double x,double y,double z,double V){
 	switch(typeflag){
 		case 0:	//初回書き込み
 			typeflag = 1;
-			fp<<"データ形式,3\n";
-			fp<<"memo\n";
-			fp<<"x,y,z,V\n";
+			fp<<"#gnuplotで読み込むことでプロットできます。\n";
+			fp << "#そのときはeveryを使って開始ブロックの宣言などを行うとうまくスクリプト化できます。\n";
+			fp<<"#x,y,z,V\n";
 			fp<<x<<","<<y<<","<<z<<","<<V<<"\n";
 			break;
 		case 1:
@@ -33,7 +33,7 @@ void GraphR::Add(double x,double y,double z,double V){
 }
 
 
-void GraphR::Add(double x,double y,double z,double Vx,double Vy,double Vz){
+void Output::Add(double x,double y,double z,double Vx,double Vy,double Vz){
 	switch(typeflag){
 		case 0:	//初回書き込み
 			typeflag = 2;
@@ -52,7 +52,7 @@ void GraphR::Add(double x,double y,double z,double Vx,double Vy,double Vz){
 }
 
 
-void GraphR::Add(double x, double y, double V) {
+void Output::Add(double x, double y, double V) {
 	switch (typeflag) {
 	case 0:	//初回書き込み
 		typeflag = 3;
@@ -70,7 +70,11 @@ void GraphR::Add(double x, double y, double V) {
 	}
 }
 
-void GraphR::close(){
+void Output::Add() {
+	fp << endl;
+}
+
+void Output::close(){
 	typeflag = 0;
 	fp.close();
 }
