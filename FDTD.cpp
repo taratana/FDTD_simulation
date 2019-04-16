@@ -82,13 +82,13 @@ void FDTD::Modeling() {
 	   
 
 	//êÖ		Ç∆ÇËÇ†Ç¶Ç∏120x20x60
-	//for (int i = 0 + L_PML; i <= NXX + L_PML; i++) {
-	//	for (int j = 80 + L_PML; j <= 100 + L_PML; j++) {
-	//		for (int k = 30 + L_PML; k <= 90 + L_PML; k++) {
-	//			IDE[i][j][k] = 1;
-	//		}
-	//	}
-	//}
+	for (int i = 0 + L_PML; i <= NXX + L_PML; i++) {
+		for (int j = NY/2; j <= NY/2+20; j++) {
+			for (int k = NZ/2-30; k <= NZ/2+30; k++) {
+				IDE[i][j][k] = 1;
+			}
+		}
+	}
 
 
 	cout << "Modeling Finished." << endl;
@@ -264,7 +264,7 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 }
 
 void FDTD::SourceE(double t) {
-	int j = NY/2;
+	int j = NY/2-20;
 	for (int i = 0; i <= NX; i++) {
 		for (int k = 0; k <= NZ; k++) {
 			Ez[i][j][k] = E_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t);
@@ -275,7 +275,7 @@ void FDTD::SourceE(double t) {
 }
 
 void FDTD::SourceH(double t) {
-	int j = NY / 2;
+	int j = NY / 2 - 20;
 	for (int i = 0; i <= NX; i++) {
 		for (int k = 0; k <= NZ; k++) {
 			Hx[i][j][k] = H_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t);
