@@ -81,7 +81,7 @@ void FDTD::Modeling() {
 	//ê^ãÛíÜ ID=0
 	   
 
-	//êÖ		Ç∆ÇËÇ†Ç¶Ç∏120x20x60
+	//êÖ		
 	for (int i = 0 + L_PML; i <= NXX + L_PML; i++) {
 		for (int j = NY/2; j <= NY/2+20; j++) {
 			for (int k = NZ/2-30; k <= NZ/2+30; k++) {
@@ -164,6 +164,20 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 	pml->bmyx.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1))); pml->bmyz.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1)));
 	pml->bmzx.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1))); pml->bmzy.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1)));
 
+	for (i = 0; i <= nx1 - nx0; i++) {
+		for (j = 0; j <= ny1 - ny0; j++) {
+			for (k = 0; k <= nz1 - nz0; k++) {
+				pml->Exy[i][j][k] = pml->Exz[i][j][k] = 0;
+				pml->Eyx[i][j][k] = pml->Eyz[i][j][k] = 0;
+				pml->Ezx[i][j][k] = pml->Ezy[i][j][k] = 0;
+				pml->Hxy[i][j][k] = pml->Hxz[i][j][k] = 0;
+				pml->Hyx[i][j][k] = pml->Hyz[i][j][k] = 0;
+				pml->Hzx[i][j][k] = pml->Hzy[i][j][k] = 0;
+			}
+		}
+	}
+
+
 	//åWêîåvéZ
 	double smax0x = copml * REF0*(M + 1) / (L_PML*DX);
 	double smax0y = copml * REF0*(M + 1) / (L_PML*DY);
@@ -175,7 +189,7 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 
 #pragma omp parallel for
 	for (k = 0; k <= nz1 - nz0 - 1; k++) {
-		for (j = 0; j < ny1 - ny0 - 1; j++) {
+		for (j = 0; j <= ny1 - ny0 - 1; j++) {
 			for (i = 0; i <= nx1 - nx0 - 1; i++) {
 				//sigmaX max ÇÃåvéZ
 				if (i + nx0 < L_PML) {
@@ -370,7 +384,7 @@ void FDTD::CalcPMLEField(PML *pml) {
 #pragma omp parallel for
 	for (k = 1; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 1; j <= pml->ny1 - pml->ny0 - 1; j++) {
-			for (i = 0; i < pml->nx1 - pml->nx0 - 1; i++) {
+			for (i = 0; i <= pml->nx1 - pml->nx0 - 1; i++) {
 				pml->Exy[i][j][k] = pml->aexy[i][j][k] * pml->Exy[i][j][k]
 					+ pml->bexy[i][j][k] * (Hz[i + pml->nx0][j + pml->ny0][k + pml->nz0] - Hz[i + pml->nx0][j - 1 + pml->ny0][k + pml->nz0]);
 				pml->Exz[i][j][k] = pml->aexz[i][j][k] * pml->Exz[i][j][k]
@@ -384,7 +398,7 @@ void FDTD::CalcPMLEField(PML *pml) {
 #pragma omp parallel for
 	for (k = 1; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 0; j <= pml->ny1 - pml->ny0 - 1; j++) {
-			for (i = 1; i < pml->nx1 - pml->nx0 - 1; i++) {
+			for (i = 1; i <= pml->nx1 - pml->nx0 - 1; i++) {
 				pml->Eyz[i][j][k] = pml->aeyz[i][j][k] * pml->Eyz[i][j][k]
 					+ pml->beyz[i][j][k] * (Hx[i + pml->nx0][j + pml->ny0][k + pml->nz0] - Hx[i + pml->nx0][j + pml->ny0][k - 1 + pml->nz0]);
 				pml->Eyx[i][j][k] = pml->aeyx[i][j][k] * pml->Eyx[i][j][k]
@@ -398,7 +412,7 @@ void FDTD::CalcPMLEField(PML *pml) {
 #pragma omp parallel for
 	for (k = 0; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 1; j <= pml->ny1 - pml->ny0 - 1; j++) {
-			for (i = 1; i < pml->nx1 - pml->nx0 - 1; i++) {
+			for (i = 1; i <= pml->nx1 - pml->nx0 - 1; i++) {
 				pml->Ezx[i][j][k] = pml->aezx[i][j][k] * pml->Ezx[i][j][k]
 					+ pml->bezx[i][j][k] * (Hy[i + pml->nx0][j + pml->ny0][k + pml->nz0] - Hy[i - 1 + pml->nx0][j + pml->ny0][k + pml->nz0]);
 				pml->Ezy[i][j][k] = pml->aezy[i][j][k] * pml->Ezy[i][j][k]
@@ -418,7 +432,7 @@ void FDTD::CalcPMLHField(PML *pml) {
 #pragma omp parallel for
 	for (k = 0; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 0; j <= pml->ny1 - pml->ny0 - 1; j++) {
-			for (i = 1; i < pml->nx1 - pml->nx0 - 1; i++) {
+			for (i = 1; i <= pml->nx1 - pml->nx0 - 1; i++) {
 				pml->Hxy[i][j][k] = pml->amxy[i][j][k] * pml->Hxy[i][j][k]
 					+ pml->bmxy[i][j][k] * (Ez[i + pml->nx0][j + pml->ny0][k + pml->nz0] - Ez[i + pml->nx0][j + 1 + pml->ny0][k + pml->nz0]);
 				pml->Hxz[i][j][k] = pml->amxz[i][j][k] * pml->Hxz[i][j][k]
@@ -432,12 +446,12 @@ void FDTD::CalcPMLHField(PML *pml) {
 #pragma omp parallel for
 	for (k = 0; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 1; j <= pml->ny1 - pml->ny0 - 1; j++) {
-			for (i = 0; i < pml->nx1 - pml->nx0 - 1; i++) {
+			for (i = 0; i <= pml->nx1 - pml->nx0 - 1; i++) {
 				pml->Hyz[i][j][k] = pml->amyz[i][j][k] * pml->Hyz[i][j][k]
 					+ pml->bmyz[i][j][k] * (Ex[i + pml->nx0][j + pml->ny0][k + pml->nz0] - Ex[i + pml->nx0][j + pml->ny0][k + 1 + pml->nz0]);
 				pml->Hyx[i][j][k] = pml->amyx[i][j][k] * pml->Hyx[i][j][k]
 					+ pml->bmyx[i][j][k] * (Ez[i + 1 + pml->nx0][j + pml->ny0][k + pml->nz0] - Ez[i + pml->nx0][j + pml->ny0][k + pml->nz0]);
-				Ey[i + pml->nx0][j + pml->ny0][k + pml->nz0] = pml->Hyz[i][j][k] + pml->Hyz[i][j][k];
+				Hy[i + pml->nx0][j + pml->ny0][k + pml->nz0] = pml->Hyz[i][j][k] + pml->Hyx[i][j][k];
 			}
 		}
 	}
@@ -446,7 +460,7 @@ void FDTD::CalcPMLHField(PML *pml) {
 #pragma omp parallel for
 	for (k = 1; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 0; j <= pml->ny1 - pml->ny0 - 1; j++) {
-			for (i = 0; i < pml->nx1 - pml->nx0 - 1; i++) {
+			for (i = 0; i <= pml->nx1 - pml->nx0 - 1; i++) {
 				pml->Hzx[i][j][k] = pml->amzx[i][j][k] * pml->Hzx[i][j][k]
 					+ pml->bmzx[i][j][k] * (Ey[i + pml->nx0][j + pml->ny0][k + pml->nz0] - Ey[i + 1 + pml->nx0][j + pml->ny0][k + pml->nz0]);
 				pml->Hzy[i][j][k] = pml->aezy[i][j][k] * pml->Hzy[i][j][k]
@@ -471,13 +485,13 @@ void FDTD::StartRepetition() {
 	for (n = 0; n <= NT; n++) {
 		CalcEField();
 		for (i = 0; i < 6; i++) {
-			//CalcPMLEField(&pml[i]);
+			CalcPMLEField(&pml[i]);
 		}
 		SourceE(t);
 		t = t + DT / 2.0;
 		CalcHField();
 		for (i = 0; i < 6; i++) {
-			//CalcPMLHField(&pml[i]);
+			CalcPMLHField(&pml[i]);
 		}
 		SourceH(t);
 		t = t + DT / 2.0;
