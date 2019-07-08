@@ -39,6 +39,7 @@ void FDTD::DeterminMatrixSize() {
 void FDTD::InitMatrix() {
 	int i, j, k, l;
 
+#pragma omp parallel for
 	for (i = 0; i <= NX; i++) {
 		for (j = 0; j <= NY; j++) {
 			for (k = 0; k <= NZ; k++) {
@@ -82,13 +83,13 @@ void FDTD::Modeling() {
 	   
 
 	//…		
-	for (int i = 0 + L_PML; i <= NXX + L_PML; i++) {
-		for (int j = NY/2; j <= NY/2+20; j++) {
-			for (int k = NZ/2-30; k <= NZ/2+30; k++) {
-				IDE[i][j][k] = 1;
-			}
-		}
-	}
+	//for (int i = 0 + L_PML; i <= NXX + L_PML; i++) {
+	//	for (int j = NY/2; j <= NY/2+20; j++) {
+	//		for (int k = NZ/2-30; k <= NZ/2+30; k++) {
+	//			IDE[i][j][k] = 1;
+	//		}
+	//	}
+	//}
 
 
 	cout << "Modeling Finished." << endl;
@@ -164,6 +165,7 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 	pml->bmyx.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1))); pml->bmyz.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1)));
 	pml->bmzx.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1))); pml->bmzy.resize(nx1 - nx0 + 1, vector<vector<double>>(ny1 - ny0 + 1, vector<double>(nz1 - nz0 + 1)));
 
+#pragma omp parallel for 
 	for (i = 0; i <= nx1 - nx0; i++) {
 		for (j = 0; j <= ny1 - ny0; j++) {
 			for (k = 0; k <= nz1 - nz0; k++) {
@@ -187,7 +189,7 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 	double sgmym, sgmye;
 	double sgmzm, sgmze;
 
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k)
 	for (k = 0; k <= nz1 - nz0 - 1; k++) {
 		for (j = 0; j <= ny1 - ny0 - 1; j++) {
 			for (i = 0; i <= nx1 - nx0 - 1; i++) {
@@ -278,14 +280,14 @@ void FDTD::CalcPMLCECM(PML *pml, int nx0, int nx1, int ny0, int ny1, int nz0, in
 }
 
 void FDTD::SourceE(double t) {
-	int j = NY/2-20;
-	for (int i = 0; i <= NX; i++) {
-		for (int k = 0; k <= NZ; k++) {
+	int i = L_PML, j = L_PML;
+	//for (int i = 0; i <= NX; i++) {
+		for (int k = L_PML; k <= NZ-L_PML; k++) {
 			Ez[i][j][k] = E_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t);
 			//Ey[i][j][k] = E_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t)*sin(PI / 6);
 			//Ez[i][j][k] = E_WAVE_AMPLITUDE * sin(2 * PI*WAVE_FREQUENCY*t)*cos(PI / 6);
 		}
-	}
+	//}
 }
 
 void FDTD::SourceH(double t) {
@@ -303,7 +305,7 @@ void FDTD::CalcEField() {
 	int id;
 
 	//Ex
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 1; k <= NZ - 1; k++) {
 		for (j = 1; j <= NY - 1; j++) {
 			for (i = 0; i <= NX - 1; i++) {
@@ -314,7 +316,7 @@ void FDTD::CalcEField() {
 	}
 
 	//Ey
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 1; k <= NZ - 1; k++) {
 		for (j = 0; j <= NY - 1; j++) {
 			for (i = 1; i <= NX - 1; i++) {
@@ -325,7 +327,7 @@ void FDTD::CalcEField() {
 	}
 
 	//Ez
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 0; k <= NZ - 1; k++) {
 		for (j = 1; j <= NY - 1; j++) {
 			for (i = 1; i <= NX - 1; i++) {
@@ -343,7 +345,7 @@ void FDTD::CalcHField() {
 	int id;
 
 	//Hx
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 0; k <= NZ - 1; k++) {
 		for (j = 0; j <= NY - 1; j++) {
 			for (i = 1; i <= NX - 1; i++) {
@@ -354,7 +356,7 @@ void FDTD::CalcHField() {
 	}
 
 	//Hy
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 0; k <= NZ - 1; k++) {
 		for (j = 1; j <= NY - 1; j++) {
 			for (i = 0; i <= NX - 1; i++) {
@@ -365,7 +367,7 @@ void FDTD::CalcHField() {
 	}
 
 	//Hz
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 1; k <= NZ - 1; k++) {
 		for (j = 0; j <= NY - 1; j++) {
 			for (i = 0; i <= NX - 1; i++) {
@@ -381,7 +383,7 @@ void FDTD::CalcPMLEField(PML *pml) {
 	int i, j, k;
 
 	//Ex
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 1; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 1; j <= pml->ny1 - pml->ny0 - 1; j++) {
 			for (i = 0; i <= pml->nx1 - pml->nx0 - 1; i++) {
@@ -395,7 +397,7 @@ void FDTD::CalcPMLEField(PML *pml) {
 	}
 
 	//Ey
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 1; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 0; j <= pml->ny1 - pml->ny0 - 1; j++) {
 			for (i = 1; i <= pml->nx1 - pml->nx0 - 1; i++) {
@@ -409,7 +411,7 @@ void FDTD::CalcPMLEField(PML *pml) {
 	}
 
 	//Ez
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 0; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 1; j <= pml->ny1 - pml->ny0 - 1; j++) {
 			for (i = 1; i <= pml->nx1 - pml->nx0 - 1; i++) {
@@ -420,7 +422,7 @@ void FDTD::CalcPMLEField(PML *pml) {
 				Ez[i + pml->nx0][j + pml->ny0][k + pml->nz0] = pml->Ezx[i][j][k] + pml->Ezy[i][j][k];
 			}
 		}
-	}
+}
 
 	//cout << "Updated PML E Field." << endl;
 }
@@ -429,7 +431,7 @@ void FDTD::CalcPMLHField(PML *pml) {
 	int i, j, k;
 
 	//Hx
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 0; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 0; j <= pml->ny1 - pml->ny0 - 1; j++) {
 			for (i = 1; i <= pml->nx1 - pml->nx0 - 1; i++) {
@@ -443,7 +445,7 @@ void FDTD::CalcPMLHField(PML *pml) {
 	}
 
 	//Hy
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 0; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 1; j <= pml->ny1 - pml->ny0 - 1; j++) {
 			for (i = 0; i <= pml->nx1 - pml->nx0 - 1; i++) {
@@ -457,7 +459,7 @@ void FDTD::CalcPMLHField(PML *pml) {
 	}
 
 	//Hz
-#pragma omp parallel for
+#pragma omp parallel for private (i,j,k) schedule(dynamic, 1)
 	for (k = 1; k <= pml->nz1 - pml->nz0 - 1; k++) {
 		for (j = 0; j <= pml->ny1 - pml->ny0 - 1; j++) {
 			for (i = 0; i <= pml->nx1 - pml->nx0 - 1; i++) {
@@ -493,7 +495,7 @@ void FDTD::StartRepetition() {
 		for (i = 0; i < 6; i++) {
 			CalcPMLHField(&pml[i]);
 		}
-		SourceH(t);
+		//SourceH(t);
 		t = t + DT / 2.0;
 
 
@@ -501,20 +503,20 @@ void FDTD::StartRepetition() {
 		cout << " (t=" << scientific << setprecision(2) << t << ")" << endl;
 
 		if (n % 50 == 0) {
-			sprintf(file_name, "E-n=%03d,t=%4.2e.csv", n, t);
+			//sprintf(file_name, "E-n=%03d,t=%4.2e.csv", n, t);
 			//EOutput1 = new Output(file_name);
 			sprintf(file_name, "E-n=%03d,t=%4.2e.csv", n, t);
 			EOutput2 = new Output(file_name);
 
 			for (i = L_PML; i <= NX - L_PML; i++) {
 				for (j = L_PML; j <= NY - L_PML; j++) {
-					for (k = L_PML; k <= NZ - L_PML; k++) {
+					//for (k = L_PML; k <= NZ - L_PML; k++) {
 						//EOutput1->Add(i - L_PML, j - L_PML, k - L_PML, Ez[i][j][k]);
-						EOutput2->Add((i - L_PML)*DX*1e-6, (j - L_PML)*DY*1e-6, (k - L_PML)*DZ*1e-6, Ez[i][j][k]);
-					}
-					//EOutput1->Add();
-					//EOutput2->Add();
+						EOutput2->Add((i - L_PML)*DX, (j - L_PML)*DY, Ez[i][j][NZ/2]);
+					//}
+					//EOutput1->AddSpace();
 				}
+				EOutput2->AddSpace();
 			}
 			//delete EOutput1;
 			delete EOutput2;

@@ -19,12 +19,12 @@ static const int M = 4;			//PML‚Ì“±“d—¦‚ÌŒW”
 static const int L_PML = 16;	//PML‚Ì‘w”
 static const double REF0 = -120; //PML”}¿‚©‚ç‚Ì”½Ë‚Ì‘å‚«‚³[dB]
 
-//—Ìˆæ•ªŠ„” [-]
+//(PML‚ğŠÜ‚ß‚È‚¢)—Ìˆæ•ªŠ„”
 static const int NXX = 120;	//‰ğÍ—Ìˆæ‚É10”g’·û‚ß‚½‚¢
 static const int NYY = 120;
 static const int NZZ = 120;
 
-//‘S—Ìˆæ‚Ì•ªŠ„”
+//‘S—Ìˆæ(PML‚ğŠÜ‚ß‚½)‚Ì•ªŠ„”
 static const int NX = NXX + 2 * L_PML;
 static const int NY = NYY + 2 * L_PML;
 static const int NZ = NZZ + 2 * L_PML;

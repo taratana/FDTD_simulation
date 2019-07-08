@@ -15,8 +15,8 @@ project = mato_FDTD_3D
 objs= main.o FDTD.o Output.o
 CXX=icpc
 #CFLAGS= -O3 -ipo -xhost -mkl -Wall
-CFLAGS= -O3 -ipo -qopenmp -xhost -mkl -Wall -std=c++11 -g3
-#CFLAGS = -O3 -ipo -xS -openmp
+CFLAGS= -O3 -ipo -qopenmp -xhost -mkl -Wall -std=c++11
+#CFLAGS= -O3 -ipo -xhost -mkl -Wall -std=c++11
 
 .SUFFIXES: .cpp .o
 

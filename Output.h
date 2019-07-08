@@ -17,6 +17,6 @@ public:
 	void Add(double x,double y,double z,double V);
 	void Add(double x,double y,double z,double Vx,double Vy,double Vz);
 	void Add(double x, double y, double V);
-	void Add();
+	void AddSpace();
 	void close();
 };
